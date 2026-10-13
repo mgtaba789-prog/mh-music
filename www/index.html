@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MH MUSIC</title>
+<style>
+:root{--bg:#000;--fg:#fff;--dim:rgba(255,255,255,.5);--line:rgba(255,255,255,.14);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Tajawal","Segoe UI",Tahoma,sans-serif}
+main{max-width:640px;margin:0 auto;padding:0 18px 60px}
+.hero{min-height:46vh;display:flex;flex-direction:column;justify-content:flex-start;padding-top:12vh}
+h1{font-size:1.15rem;font-weight:500;text-align:center;margin:0 0 18px}
+.sb{display:block;width:100%;background:#fff;color:#000;border:0;border-radius:28px;padding:15px 22px;font:inherit;font-size:1rem;text-align:right}
+.sb:focus{outline:3px solid rgba(255,255,255,.4);outline-offset:2px}
+.res{margin-top:10px;display:flex;flex-direction:column;gap:2px}
+.row{display:flex;align-items:center;gap:12px;padding:10px;border-radius:12px;background:none;border:0;color:inherit;font:inherit;text-align:right;width:100%;cursor:pointer}
+.row:hover,.row:focus-visible{background:rgba(255,255,255,.09);outline:none}
+.art{flex:none;width:52px;height:52px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:1.1rem;color:#fff}
+.t{min-width:0;flex:1}
+.t b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t span{display:block;color:var(--dim);font-size:.85rem;direction:ltr;text-align:right}
+.t small{display:block;color:rgba(255,255,255,.28);font-size:.68rem;margin-top:1px}
+.empty{color:var(--dim);text-align:center;padding:14px;font-size:.9rem}
+#player{border-top:1px solid var(--line);padding:34px 0 10px;text-align:center}
+#player .big{width:min(62vw,260px);aspect-ratio:1;border-radius:14px;margin:0 auto 18px;display:grid;place-items:center;font-size:3rem;font-weight:700}
+#pt{font-size:1.25rem;font-weight:500;margin:0;direction:ltr}
+#pa{color:var(--dim);margin:4px 0 0;direction:ltr}
+#ps{color:rgba(255,255,255,.28);font-size:.72rem;margin:2px 0 18px}
+.bar{height:4px;background:var(--line);border-radius:2px;margin:0 6px;overflow:hidden;direction:ltr}
+.bar i{display:block;height:100%;width:0;background:#fff}
+.tm{display:flex;justify-content:space-between;color:var(--dim);font-size:.75rem;margin:6px 6px 14px;direction:ltr}
+.ctl{display:flex;justify-content:center;align-items:center;gap:22px;direction:ltr}
+.ctl button{background:none;border:1px solid var(--line);color:#fff;border-radius:50%;width:54px;height:54px;font:inherit;font-size:.85rem;cursor:pointer}
+.ctl .pp{width:70px;height:70px;background:#fff;color:#000;border:0;font-size:1.5rem}
+#hist{margin-top:34px}
+#hist h2{font-size:.95rem;font-weight:500;color:var(--dim);margin:0 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(5,auto);gap:6px 10px}
+.slot{border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:46px;font-size:.8rem;background:none;color:inherit;text-align:right;font-family:inherit;cursor:pointer;direction:ltr;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.slot.e{cursor:default;color:rgba(255,255,255,.22);text-align:center}
+.slot span{color:var(--dim)}
+.hide{display:none}
+</style>
+</head>
+<body>
+<main>
+<section class="hero">
+<h1>ابحث عن أغانيك يا MG-HS</h1>
+<input id="q" class="sb" type="search" placeholder="اكتب اسم الأغنية أو الفنان" autocomplete="off" aria-label="بحث">
+<div id="res" class="res" aria-live="polite"></div>
+</section>
+
+<section id="player" class="hide" aria-label="المشغّل">
+<div id="pc" class="big"></div>
+<p id="pt"></p><p id="pa"></p><p id="ps"></p>
+<div class="bar"><i id="pb"></i></div>
+<div class="tm"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+<div class="ctl">
+<button id="back" aria-label="رجوع 10 ثوانٍ">−10</button>
+<button id="pp" class="pp" aria-label="تشغيل">▶</button>
+<button id="fwd" aria-label="تقديم 10 ثوانٍ">+10</button>
+</div>
+</section>
+
+<section id="hist"><h2>سجل البحث</h2><div id="grid" class="grid"></div></section>
+</main>
+
+<script>
+var CAT=[
+{t:"Habibi Ya Nour El Ain",a:"Amr Diab",s:"Audius",d:262,c:"#7a1f2b"},
+{t:"Habibi Ya Nour El Ain (Live)",a:"Amr Diab",s:"Internet Archive",d:288,c:"#3b2a6b"},
+{t:"Habibi Ya Nour El Ain (Acoustic)",a:"Cairo Strings",s:"Jamendo",d:231,c:"#1f5a4a"},
+{t:"Ya Tayr",a:"Fairuz",s:"Internet Archive",d:215,c:"#6b4a1a"},
+{t:"Ya Tayr (Remaster)",a:"Fairuz",s:"Audius",d:219,c:"#244a72"},
+{t:"Midnight Drive",a:"Neon Harbor",s:"Jamendo",d:204,c:"#5a1f6b"},
+{t:"Midnight Drive (Slowed)",a:"Neon Harbor",s:"Audius",d:247,c:"#1a4f5a"},
+{t:"Desert Rain",a:"Sahara Echo",s:"Jamendo",d:233,c:"#6b3a1f"},
+{t:"Desert Rain (Instrumental)",a:"Sahara Echo",s:"Internet Archive",d:233,c:"#3a5a1f"}];
+var $=function(i){return document.getElementById(i)};
+var hist=[],cur=null,pos=0,playing=false,timer=null;
+try{hist=JSON.parse(localStorage.getItem("mh_hist")||"[]")}catch(e){hist=[]}
+function ini(s){return s.trim().slice(0,1).toUpperCase()}
+function fmt(n){n=Math.floor(n);return Math.floor(n/60)+":"+("0"+n%60).slice(-2)}
+function esc(s){return s.replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+function search(v){
+ v=v.trim().toLowerCase();var r=$("res");
+ if(!v){r.innerHTML="";return}
+ var list=CAT.filter(function(x){return (x.t+" "+x.a).toLowerCase().indexOf(v)>-1});
+ if(!list.length){r.innerHTML='<div class="empty">لا توجد نتائج. جرّب كلمة أخرى.</div>';return}
+ r.innerHTML=list.map(function(x){var i=CAT.indexOf(x);
+  return '<button class="row" data-i="'+i+'"><div class="art" style="background:'+x.c+'">'+ini(x.t)+'</div><div class="t"><b>'+esc(x.t)+'</b><span>'+esc(x.a)+'</span><small>'+x.s+'</small></div></button>'}).join("");
+}
+$("q").addEventListener("input",function(e){search(e.target.value)});
+$("res").addEventListener("click",function(e){var b=e.target.closest(".row");if(b)play(+b.dataset.i,true)});
+
+function play(i,save){
+ cur=CAT[i];pos=0;
+ $("pc").style.background=cur.c;$("pc").textContent=ini(cur.t);
+ $("pt").textContent=cur.t;$("pa").textContent=cur.a;$("ps").textContent=cur.s;
+ $("dur").textContent=fmt(cur.d);
+ $("player").classList.remove("hide");
+ if(save){hist=hist.filter(function(h){return h!==i});hist.unshift(i);hist=hist.slice(0,10);try{localStorage.setItem("mh_hist",JSON.stringify(hist))}catch(e){}renderHist()}
+ setPlaying(true);
+ $("player").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function setPlaying(p){
+ playing=p;$("pp").textContent=p?"❚❚":"▶";$("pp").setAttribute("aria-label",p?"إيقاف":"تشغيل");
+ clearInterval(timer);
+ if(p)timer=setInterval(function(){pos+=1;if(pos>=cur.d){pos=cur.d;setPlaying(false)}draw()},1000);
+ draw();
+}
+function draw(){if(!cur)return;$("pb").style.width=(pos/cur.d*100)+"%";$("cur").textContent=fmt(pos)}
+$("pp").onclick=function(){if(!cur)return;if(pos>=cur.d)pos=0;setPlaying(!playing)};
+$("fwd").onclick=function(){if(cur){pos=Math.min(cur.d,pos+10);draw()}};
+$("back").onclick=function(){if(cur){pos=Math.max(0,pos-10);draw()}};
+
+function renderHist(){
+ var h="";
+ for(var n=0;n<10;n++){
+  var i=hist[n];
+  if(i===undefined)h+='<div class="slot e">'+(n+1)+'</div>';
+  else h+='<button class="slot" data-i="'+i+'">'+(n+1)+'. '+esc(CAT[i].t)+' <span>'+esc(CAT[i].a)+'</span></button>';
+ }
+ $("grid").innerHTML=h;
+}
+$("grid").addEventListener("click",function(e){var b=e.target.closest("button.slot");if(b)play(+b.dataset.i,false)});
+renderHist();
+</script>
+</body>
+</html>
